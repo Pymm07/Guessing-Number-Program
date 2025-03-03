@@ -3,11 +3,11 @@ import random
 # Function to get player's name and store it
 def getPlayerName():
     playerName = input("Enter your name: ").strip()
-    
+
     # Save player's name to a file
     with open("players.txt", "a") as file:
         file.write(playerName + "\n")
-    
+
     return playerName
 
 # Function to play the game
@@ -29,29 +29,49 @@ def playGame(playerName):
             continue  # Restart the loop if input is not a number
 
         if 1 <= userInput <= 100:
+            guessCount += 1  # Increment guess count
+
             if userInput > guessNumber:
                 print("Your number is too high")
             elif userInput < guessNumber:
                 print("Your number is too low")
             else:
-                print(f"Congratulations, {playerName}! You guessed the number in {guessCount + 1} tries.")
+                print(f"Congratulations, {playerName}! You guessed the number in {guessCount} tries.")
                 
-                # Save player score to scoreboard
-                saveScore(playerName, guessCount + 1)
+                # Save player score to leaderboard
+                saveScore(playerName, guessCount)
                 break
-
-            guessCount += 1  # Increment guess count
         else:
             print("Out of range! Please enter a number between 1 and 100.")
 
 # Function to save score to a file
 def saveScore(playerName, score):
-    with open("scoreboard.txt", "a") as file:
-        file.write(f"{playerName}: {score}\n")
+    scores = {}
 
-# Function to display the scoreboard
-def displayScoreboard():
-    print("\n--- SCOREBOARD ---")
+    # Read existing scores
+    try:
+        with open("scoreboard.txt", "r") as file:
+            for line in file:
+                name, scoreValue = line.strip().split(": ")
+                scores[name] = int(scoreValue)
+    except FileNotFoundError:
+        pass  # If file does not exist, continue with empty scores
+
+    # Update only if the new score is better
+    if playerName not in scores or score < scores[playerName]:
+        scores[playerName] = score
+
+    # Sort scores from least to most guesses
+    sortedScores = sorted(scores.items(), key=lambda x: x[1])
+
+    # Write the sorted leaderboard back to the file
+    with open("scoreboard.txt", "w") as file:
+        for name, scoreValue in sortedScores:
+            file.write(f"{name}: {scoreValue}\n")
+
+# Function to display the leaderboard
+def displayLeaderboard():
+    print("\n--- LEADERBOARD ---")
     try:
         with open("scoreboard.txt", "r") as file:
             scores = file.readlines()
@@ -71,5 +91,5 @@ while True:
     playAgain = input("Do you want to play again? (y/n): ").strip().lower()
     if playAgain != 'y':
         print("Thank you for playing!")
-        displayScoreboard()  # Show final scoreboard
+        displayLeaderboard()  # Show final leaderboard
         break
