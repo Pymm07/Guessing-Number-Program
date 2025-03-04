@@ -1,4 +1,5 @@
 import random
+import os
 
 # Function to get player's name and store it
 def getPlayerName():
@@ -16,14 +17,18 @@ def playGame(playerName):
     guessCount = 0
 
     print("\nWelcome to the Number Guessing Game!")
-    input("Press Enter to start...")
+    playerInput = input("Press Enter to start... (L) if you want to go to leaderboard: ").strip()
+
+    if playerInput.lower() == "l":
+        displayLeaderboard()  # Show the leaderboard and return to game
+        return  # Return without playing the game
 
     while True:
         userInput = input("Enter a number from 1-100: ")
 
         # Ensure input is a valid integer
         if userInput.isdigit():
-            userInput = int(userInput)
+            userInput = int(userInput)   
         else:
             print("Invalid input! Please enter a number between 1 and 100.")
             continue  # Restart the loop if input is not a number
@@ -48,21 +53,20 @@ def playGame(playerName):
 def saveScore(playerName, score):
     scores = {}
 
-    # Read existing scores
-    try:
+    # Check if the scoreboard file exists
+    if os.path.exists("scoreboard.txt"):
+        # Read existing scores
         with open("scoreboard.txt", "r") as file:
             for line in file:
                 name, scoreValue = line.strip().split(": ")
                 scores[name] = int(scoreValue)
-    except FileNotFoundError:
-        pass  # If file does not exist, continue with empty scores
 
     # Update only if the new score is better
     if playerName not in scores or score < scores[playerName]:
         scores[playerName] = score
 
-    # Sort scores from least to most guesses
-    sortedScores = sorted(scores.items(), key=lambda x: x[1])
+    # Sort scores from least to most guesses using a lambda function
+    sortedScores = sorted(scores.items(), key=lambda item: item[1])
 
     # Write the sorted leaderboard back to the file
     with open("scoreboard.txt", "w") as file:
@@ -72,18 +76,21 @@ def saveScore(playerName, score):
 # Function to display the leaderboard
 def displayLeaderboard():
     print("\n--- LEADERBOARD ---")
-    try:
-        with open("scoreboard.txt", "r") as file:
-            scores = file.readlines()
-            if scores:
-                for score in scores:
-                    print(score.strip())
-            else:
-                print("No scores recorded yet.")
-    except FileNotFoundError:
+    if os.path.exists("scoreboard.txt"):
+        try:
+            with open("scoreboard.txt", "r") as file:
+                scores = file.readlines()
+                if scores:
+                    for score in scores:
+                        print(score.strip())
+                else:
+                    print("No scores recorded yet.")
+        except FileNotFoundError:
+            print("No scores recorded yet.")
+    else:
         print("No scores recorded yet.")
 
-# Main game loop
+
 while True:
     playerName = getPlayerName()
     playGame(playerName)
